@@ -5,44 +5,43 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 
-class PlainBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, stride= 1):
-        super().__init__()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.conv1= nn.Conv2d(in_channels,out_channels,kernel_size=3,stride=stride,padding=1, bias=False)
+class PlainBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, stride=1):
+        super().__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channels)
 
-        self.conv2= nn.Conv2d(out_channels,out_channels,kernel_size=3,stride=stride,padding=1, bias=False)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(out_channels)
 
-    def forward(self,x):
+    def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.bn2(self.conv2(out))
         out = F.relu(out)
         return out
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, stride= 1):
+    def __init__(self, in_channels, out_channels, stride=1):
         super().__init__()
-
-        self.conv1= nn.Conv2d(in_channels,out_channels,kernel_size=3,stride=stride,padding=1, bias=False)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channels)
 
-        self.conv2= nn.Conv2d(out_channels,out_channels,kernel_size=3,stride=stride,padding=1, bias=False)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(out_channels)
 
         self.shortcut = nn.Sequential()
-        if stride!=1 or in_channels!=out_channels:
+        if stride != 1 or in_channels != out_channels:
             self.shortcut = nn.Sequential(
                 nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False),
                 nn.BatchNorm2d(out_channels)
-                )
-    def forward(self,x):
+            )
+
+    def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.bn2(self.conv2(out))
-        
-        #F(x)+x
-        out+=self.shortcut(x)
+        out += self.shortcut(x)
         out = F.relu(out)
         return out
 
@@ -74,13 +73,12 @@ class ResNetCIFAR(nn.Module):
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
-        out = F.avg_pool2d(out, 4) # Average pooling
+        
+        out = F.adaptive_avg_pool2d(out, (1, 1))
+        
         out = out.view(out.size(0), -1)
         out = self.linear(out)
         return out
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 def evaluate_accuracy(model, dataloader):
     model.eval()
@@ -113,7 +111,7 @@ def train_and_validate(model,model_name,epochs=15):
 
     # Hyperparameters from the paper
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
+    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1) 
     
     train_loss_history = []
