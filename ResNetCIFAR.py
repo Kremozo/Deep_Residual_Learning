@@ -120,6 +120,7 @@ def train_and_validate(model,model_name,epochs=15):
     model.train()
 
     for epoch in range(epochs):
+        model.train()
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             inputs, labels = data
