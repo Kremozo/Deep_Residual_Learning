@@ -5,7 +5,7 @@ I implemented both **Plain Networks** and **Residual Networks (ResNets)** of var
 1.  **Plain Nets:** Deeper networks (56 layers) should perform *worse* than shallow ones (20 layers) due to optimization difficulties.
 2.  **ResNets:** Residual connections should resolve this, allowing the 56-layer model to outperform the 20-layer model.
 
-##Results
+## Results
 
 ![Experiment Results](Error_Rates.png)
 
