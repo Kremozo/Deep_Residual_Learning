@@ -94,57 +94,67 @@ def evaluate_accuracy(model, dataloader):
             correct += (predicted == labels).sum().item()
     return 100 * correct / total
 
-def train_and_validate(model,model_name,epochs=15):
-    print(f"\nStarting training for:{model_name}")
+def train_and_validate(model, model_name, epochs=15):
+    print(f"\nStarting training for: {model_name}")
     print(f" Training on: {device}")
 
     transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) 
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) 
     ])
 
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False,download=True, transform=transform)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=128,shuffle=False, num_workers=2)
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=128, shuffle=False, num_workers=2)
 
-
-    # Hyperparameters from the paper
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1) 
     
-    train_loss_history = []
-    test_acc_history = []
+    # HISTORY CONTAINERS
+    history = {
+        'train_loss': [],
+        'train_acc': [],  # <--- NEW
+        'test_acc': []
+    }
     
-    model.train()
-
     for epoch in range(epochs):
-        model.train()
+        model.train() 
         running_loss = 0.0
+        correct_train = 0
+        total_train = 0
+        
         for i, data in enumerate(trainloader, 0):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
 
             optimizer.zero_grad()
-            
-            # Forward + Backward + Optimize
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
 
             running_loss += loss.item()
+            
+            # CALCULATE TRAIN ACCURACY ON THE FLY
+            _, predicted = torch.max(outputs.data, 1)
+            total_train += labels.size(0)
+            correct_train += (predicted == labels).sum().item()
         
         scheduler.step()
         
-        # Calculate average loss for this epoch
+        # Save Epoch Metrics
         avg_loss = running_loss / len(trainloader)
-        train_loss_history.append(avg_loss)
+        train_acc = 100 * correct_train / total_train
+        test_acc = evaluate_accuracy(model, testloader)
+        
+        history['train_loss'].append(avg_loss)
+        history['train_acc'].append(train_acc)
+        history['test_acc'].append(test_acc)
 
-        current_acc = evaluate_accuracy(model, testloader)
-        test_acc_history.append(current_acc)
-
-        print(f"[{model_name}] Epoch {epoch+1} | Loss: {avg_loss:.4f} | Test Acc: {current_acc:.2f}%")        
-    return train_loss_history, test_acc_history
+        print(f"[{model_name}] Ep {epoch+1} | Loss: {avg_loss:.4f} | Train Acc: {train_acc:.2f}% | Test Acc: {test_acc:.2f}%")        
+        
+    return history
 
