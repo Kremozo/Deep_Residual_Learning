@@ -5,5 +5,7 @@ I implemented both **Plain Networks** and **Residual Networks (ResNets)** of var
 1.  **Plain Nets:** Deeper networks (56 layers) should perform *worse* than shallow ones (20 layers) due to optimization difficulties.
 2.  **ResNets:** Residual connections should resolve this, allowing the 56-layer model to outperform the 20-layer model.
 
+##Results
+![Experiment Results](error_rates.png)
 References
     K. He, X. Zhang, S. Ren, and J. Sun, "Deep Residual Learning for Image Recognition," CVPR, 2015.
