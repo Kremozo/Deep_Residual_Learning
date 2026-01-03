@@ -6,4 +6,4 @@ I implemented both **Plain Networks** and **Residual Networks (ResNets)** of var
 2.  **ResNets:** Residual connections should resolve this, allowing the 56-layer model to outperform the 20-layer model.
 
 References
-    K. He, X. Zhang, S. Ren, and J. Sun, "Deep Residual Learning for Image Recognition," CVPR, 2016.
+    K. He, X. Zhang, S. Ren, and J. Sun, "Deep Residual Learning for Image Recognition," CVPR, 2015.
