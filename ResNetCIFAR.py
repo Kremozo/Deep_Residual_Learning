@@ -115,7 +115,7 @@ def train_and_validate(model, model_name, epochs=15):
     # HISTORY CONTAINERS
     history = {
         'train_loss': [],
-        'train_acc': [],  # <--- NEW
+        'train_acc': [],
         'test_acc': []
     }
     
