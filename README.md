@@ -27,3 +27,6 @@ After training the models, the validation and training error rates were plotted 
 
 ## References
 K. He, X. Zhang, S. Ren, and J. Sun, "Deep Residual Learning for Image Recognition," CVPR, 2015.
+
+## Author
+Nadav Cremisi
